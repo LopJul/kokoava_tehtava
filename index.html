@@ -215,6 +215,12 @@
           document.getElementById("uutiset").innerHTML =
             "<p>Jotain meni pieleen. Uutisia ei voida näyttää.</p>";
         });
+
+      fetch(
+        "https://api.currentsapi.services/v1/latest-news?language=fi&apiKey=EBbhdRHWNOasDoh8BjOlxMMqcpCOCuyRJdSN8M5C6lVbA2kT"
+      )
+        .then((response) => response.json())
+        .then((data) => console.log("data: ", data));
     </script>
   </body>
 </html>
