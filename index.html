@@ -112,12 +112,18 @@ index.html
       var uutiset = [];
       var currentIndex = 0;
       var itemsPerPage = 12;
+      var cacheKey = "uutiset";
+      var cacheTimeKey = "uutisetAika";
+      var cacheDuration = 24 * 60 * 60 * 1000; // 24h millisekunteina
 
       // Haetaan uutiset
       function haeUutiset(data) {
         uutiset = data.news.sort(function (a, b) {
           return new Date(b.published) - new Date(a.published);
         });
+
+        localStorage.setItem(cacheKey, JSON.stringify(uutiset));
+        localStorage.setItem(cacheTimeKey, Date.now());
 
         currentIndex = 0;
         naytaUutiset();
@@ -219,16 +225,31 @@ index.html
       var naytaLisaa = document.getElementById("nayta-lisaa");
       naytaLisaa.addEventListener("click", naytaUutiset);
 
-      // Hae uutiset
-      var apiurl =
-        "https://api.currentsapi.services/v1/latest-news?language=fi&apiKey=kWRakswkn1iA_YZFIjEQzRPygCV7KulUl4BIrc7xhATLG3VY";
-      fetch(apiurl)
-        .then((response) => response.json())
-        .then((data) => haeUutiset(data))
-        .catch(function (error) {
-          document.getElementById("uutiset").innerHTML =
-            "<p>Jotain meni pieleen. Uutisia ei voida näyttää.</p>";
-        });
+      function lataaUutiset() {
+        var cachedData = localStorage.getItem(cacheKey);
+        var cachedTime = localStorage.getItem(cacheTimeKey);
+
+        if (
+          cachedData &&
+          cachedTime &&
+          Date.now() - cachedTime < cacheDuration
+        ) {
+          haeUutiset({ news: JSON.parse(cachedData) });
+        } else {
+          // Hae uutiset
+          var apiurl =
+            "https://api.currentsapi.services/v1/latest-news?language=fi&apiKey=kWRakswkn1iA_YZFIjEQzRPygCV7KulUl4BIrc7xhATLG3VY";
+          fetch(apiurl)
+            .then((response) => response.json())
+            .then((data) => haeUutiset(data))
+            .catch(function (error) {
+              document.getElementById("uutiset").innerHTML =
+                "<p>Jotain meni pieleen. Uutisia ei voida näyttää.</p>";
+            });
+        }
+      }
+
+      lataaUutiset();
     </script>
   </body>
 </html>
