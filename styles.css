@@ -31,13 +31,15 @@
 
 .lomake {
   max-width: 500px;
-  margin: 0 auto;
+  margin: 15px auto;
 }
 
-.nimi,
-.email,
-.viesti {
+.kentta {
   margin: 15px auto;
+}
+
+.viesti {
+  margin-top: 30px;
 }
 
 label {

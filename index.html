@@ -109,26 +109,27 @@
     <script>
       var uutiset = [];
       var currentIndex = 0;
-      var itemsPerPage = 12;
-      var cacheKey = "uutiset";
-      var cacheTimeKey = "uutisetAika";
-      var cacheDuration = 24 * 60 * 60 * 1000; // 24h millisekunteina
+      var naytettavatUuutiset = 12;
 
-      // Haetaan uutiset
-      function haeUutiset(data) {
+      // Näytetään uutiset
+      function naytaUutiset(data) {
+        // Uutiset uusimmasta vanhimpaan
         uutiset = data.news.sort(function (a, b) {
           return new Date(b.published) - new Date(a.published);
         });
 
-        localStorage.setItem(cacheKey, JSON.stringify(uutiset));
-        localStorage.setItem(cacheTimeKey, Date.now());
+        // Tallennetaan uutiset ja aika välimuistiin.
+        // APIn rajoitus on 20 kutsua päivässä.
+        localStorage.setItem("uutiset", JSON.stringify(uutiset));
+        localStorage.setItem("uutisetAika", Date.now());
 
         currentIndex = 0;
-        naytaUutiset();
+        luoUutiset();
       }
 
-      function paivamaara(pv) {
-        var pvm = new Date(pv);
+      // Luettava päivämäärämuoto
+      function naytaPaivamaara(paivamaara) {
+        var pvm = new Date(paivamaara);
 
         var paiva = pvm.getDate();
         var kuukausi = pvm.getMonth() + 1;
@@ -137,13 +138,18 @@
         return `${paiva}.${kuukausi}.${vuosi}`;
       }
 
-      // Näytetään uutiset
-      function naytaUutiset() {
-        uutisLista = uutiset.slice(currentIndex, currentIndex + itemsPerPage);
+      // Luodaan uutiset
+      function luoUutiset() {
+        // Näytä lisää uutisia määrällä "naytettavatUutiset"
+        uutisLista = uutiset.slice(
+          currentIndex,
+          currentIndex + naytettavatUuutiset
+        );
 
         if (currentIndex === 0 && uutisLista.length > 0) {
           // Uusin uutinen
           var uusin = uutiset[0];
+
           // Asetetaan kuva, jos saatavilla
           var kuva = "";
 
@@ -163,7 +169,7 @@
               <h2 class="font-weight-light">${uusin.title}</h2>
               <p>${uusin.title}</p>
               <p class="card-text">${uusin.description}</p>
-              <p>Julkaistu: ${paivamaara(uusin.published)}</p>
+              <p>Julkaistu: ${naytaPaivamaara(uusin.published)}</p>
               <a class="btn btn-primary linkki" href="${
                 uusin.url
               }" target="_blank">
@@ -194,7 +200,7 @@
                   <p class="card-text">
                     ${uutinen.description}
                   </p>
-                  <p class="mt-auto mb-0">Julkaistu: ${paivamaara(
+                  <p class="mt-auto mb-0">Julkaistu: ${naytaPaivamaara(
                     uutinen.published
                   )}</p>
                 </div>
@@ -211,7 +217,7 @@
         });
 
         // Asetetaan oikea indeksi, jotta voidaan näyttää lisää uutisia
-        currentIndex += itemsPerPage;
+        currentIndex += naytettavatUuutiset;
 
         // Piilotetaan painike, kun kaikki uutiset on näkyvillä
         if (currentIndex >= uutiset.length) {
@@ -221,25 +227,32 @@
 
       // Näytä lisää uutisia
       var naytaLisaa = document.getElementById("nayta-lisaa");
-      naytaLisaa.addEventListener("click", naytaUutiset);
+      naytaLisaa.addEventListener("click", luoUutiset);
 
-      function lataaUutiset() {
-        var cachedData = localStorage.getItem(cacheKey);
-        var cachedTime = localStorage.getItem(cacheTimeKey);
+      // Tulostetaan uutiset
+      function tulostaUutiset() {
+        // Haetaan välimuistista uutiset, sekä tallennetu aika
+        var uutisetLista = localStorage.getItem("uutiset");
+        var uutisetAika = localStorage.getItem("uutisetAika");
 
+        // Lasketaan vuorokausi millisekunteina
+        var paivaMillisekunteina = 24 * 60 * 60 * 1000;
+
+        // Haetaan välimuistista jos saatavilla, ja aikaa on kulunut alle 24 tuntia.
         if (
-          cachedData &&
-          cachedTime &&
-          Date.now() - cachedTime < cacheDuration
+          uutisetLista &&
+          uutisetAika &&
+          Date.now() - uutisetAika < paivaMillisekunteina
         ) {
-          haeUutiset({ news: JSON.parse(cachedData) });
+          naytaUutiset({ news: JSON.parse(uutisetLista) });
         } else {
           // Hae uutiset
-          var apiurl =
+          var api =
             "https://api.currentsapi.services/v1/latest-news?language=fi&apiKey=kWRakswkn1iA_YZFIjEQzRPygCV7KulUl4BIrc7xhATLG3VY";
-          fetch(apiurl)
+
+          fetch(api)
             .then((response) => response.json())
-            .then((data) => haeUutiset(data))
+            .then((data) => naytaUutiset(data))
             .catch(function (error) {
               document.getElementById("uutiset").innerHTML =
                 "<p>Jotain meni pieleen. Uutisia ei voida näyttää.</p>";
@@ -247,7 +260,7 @@
         }
       }
 
-      lataaUutiset();
+      tulostaUutiset();
     </script>
   </body>
 </html>
