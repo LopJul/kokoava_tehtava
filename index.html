@@ -130,17 +130,6 @@
         luoUutiset();
       }
 
-      // Luettava päivämäärämuoto
-      function naytaPaivamaara(paivamaara) {
-        var pvm = new Date(paivamaara);
-
-        var paiva = pvm.getDate();
-        var kuukausi = pvm.getMonth() + 1;
-        var vuosi = pvm.getFullYear();
-
-        return `${paiva}.${kuukausi}.${vuosi}`;
-      }
-
       // Luodaan uutiset
       function luoUutiset() {
         // Näytä lisää uutisia määrällä "naytettavatUutiset"
@@ -172,10 +161,7 @@
               <h2 class="font-weight-light">${uusin.title}</h2>
               <p>${uusin.title}</p>
               <p class="card-text">${uusin.description}</p>
-              <p>Julkaistu: ${naytaPaivamaara(uusin.published)}</p>
-              <a class="btn btn-primary linkki" href="${
-                uusin.url
-              }" target="_blank">
+              <a class="btn btn-primary linkki" href="${uusin.url}" target="_blank">
                 Lue lisää
               </a>
             </div>
@@ -203,14 +189,9 @@
                   <p class="card-text">
                     ${uutinen.description}
                   </p>
-                  <p class="mt-auto mb-0">Julkaistu: ${naytaPaivamaara(
-                    uutinen.published
-                  )}</p>
                 </div>
                 <div class="card-footer">
-                <a class="btn btn-primary linkki" target="_blank" href="${
-                  uutinen.url
-                }">Lue lisää</a>
+                <a class="btn btn-primary linkki" target="_blank" href="${uutinen.url}">Lue lisää</a>
                 </div>
               </div>
             </div>
