@@ -115,7 +115,7 @@
       var naytettavatUuutiset = 12;
 
       // Näytetään uutiset
-      function naytaUutiset(data) {
+      function naytaUutiset(data, isLocaleStorage) {
         // Uutiset uusimmasta vanhimpaan
         uutiset = data.news.sort(function (a, b) {
           return new Date(b.published) - new Date(a.published);
@@ -123,8 +123,10 @@
 
         // Tallennetaan uutiset ja aika välimuistiin.
         // APIn rajoitus on 20 kutsua päivässä.
-        localStorage.setItem("uutiset", JSON.stringify(uutiset));
-        localStorage.setItem("uutisetAika", Date.now());
+        if (!isLocaleStorage) {
+          localStorage.setItem("uutiset", JSON.stringify(uutiset));
+          localStorage.setItem("uutisetAika", Date.now());
+        }
 
         currentIndex = 0;
         luoUutiset();
@@ -226,9 +228,9 @@
         if (
           uutisetLista &&
           uutisetAika &&
-          Date.now() - uutisetAika < paivaMillisekunteina
+          Date.now() - Number(uutisetAika) < paivaMillisekunteina
         ) {
-          naytaUutiset({ news: JSON.parse(uutisetLista) });
+          naytaUutiset({ news: JSON.parse(uutisetLista) }, true);
         } else {
           // Hae uutiset
           var api =
@@ -236,7 +238,9 @@
 
           fetch(api)
             .then((response) => response.json())
-            .then((data) => naytaUutiset(data))
+            .then((data) => {
+              naytaUutiset(data);
+            })
             .catch(function (error) {
               document.getElementById("uutiset").innerHTML =
                 "<p>Jotain meni pieleen. Uutisia ei voida näyttää.</p>";
